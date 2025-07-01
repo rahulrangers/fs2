@@ -557,9 +557,9 @@ private[io] object SocketHelpers {
               IP_DROP_SOURCE_MEMBERSHIP
             )
           case None =>
-            F.raiseError(new Exception("Source Specific Multicast not implemented for IPv6Address"))
+            F.raiseError(new Exception("No IPv4Address found for Network Interface"))
         },
-      _ => F.delay(())
+      _ =>  F.raiseError(new Exception("Source Specific Multicast not implemented for IPv6Address"))
     )
 
   def block[F[_]](fd: CInt, group: IpAddress, interface: NetworkInterface, source: IpAddress)(
@@ -577,9 +577,9 @@ private[io] object SocketHelpers {
               IP_BLOCK_SOURCE
             )
           case None =>
-            F.raiseError(new Exception("Block not implemented for IPv6Address"))
+            F.raiseError(new Exception("No IPv4Address found for Network Interface"))
         },
-      _ => F.delay(())
+      _ =>  F.raiseError(new Exception("Block not implemented for IPv6Address"))
     )
 
   def unblock[F[_]](fd: CInt, group: IpAddress, interface: NetworkInterface, source: IpAddress)(
@@ -597,9 +597,9 @@ private[io] object SocketHelpers {
               IP_UNBLOCK_SOURCE
             )
           case None =>
-            F.raiseError(new Exception("Unblock not implemented for IPv6Address"))
+            F.raiseError(new Exception("No IPv4Address found for Network Interface"))
         },
-      _ => F.delay(())
+      _ =>  F.raiseError(new Exception("Unblock not implemented for IPv6Address"))
     )
 
   private[io] def setIpv4MulticastMembership[F[_]](
