@@ -167,31 +167,30 @@ private final class FdPollingDatagramSocket[F[_]: LiftIO] private (
 
   def writes: Pipe[F, Datagram, Nothing] =
     _.foreach(write)
-
+  
   def join(
       join: MulticastJoin[IpAddress],
       interface: NetworkInterface
   ): F[GroupMembership] =
     F.delay {
-      join.fold(
-        j => SocketHelpers.join(fd, j.group.address, interface),
-        j => SocketHelpers.join(fd, j.group.address, interface, j.source)
+      val groupAddress = join.fold(
+        j => {
+          SocketHelpers.join(fd, j.group.address, interface)
+          j.group.address
+        },
+        j => {
+          SocketHelpers.join(fd, j.group.address, interface, j.source)
+          j.group.address
+        }
       )
       new GroupMembership {
         def drop = join.fold(
           j => SocketHelpers.drop(fd, j.group.address, interface),
           j => SocketHelpers.drop(fd, j.group.address, interface, j.source)
         )
-        def block(source: IpAddress) = join.fold(
-          j => SocketHelpers.block(fd, j.group.address, interface, source),
-          j => SocketHelpers.block(fd, j.group.address, interface, source)
-        )
+        def block(source: IpAddress) = SocketHelpers.block(fd, groupAddress, interface, source)
 
-        def unblock(source: IpAddress) = join.fold(
-          j => SocketHelpers.unblock(fd, j.group.address, interface, source),
-          j => SocketHelpers.unblock(fd, j.group.address, interface, source)
-        )
-
+        def unblock(source: IpAddress) = SocketHelpers.unblock(fd, groupAddress, interface, source)
       }
     }
 
@@ -201,7 +200,7 @@ private final class FdPollingDatagramSocket[F[_]: LiftIO] private (
 
 private object FdPollingDatagramSocket {
   private final val DefaultReadSize = 65507
-  val MSG_DONTWAIT = 0x40
+  private final val MSG_DONTWAIT = 0x40
 
   def apply[F[_]: LiftIO](
       fd: Int,

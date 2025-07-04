@@ -59,7 +59,6 @@ import syssocket._
 import sysun._
 import sysunOps._
 import com.comcast.ip4s.NetworkInterface
-import java.net.{NetworkInterface => JNetworkInterface}
 import com.comcast.ip4s.Cidr
 
 @extern
@@ -510,9 +509,9 @@ private[io] object SocketHelpers {
               IP_ADD_SOURCE_MEMBERSHIP
             )
           case None =>
-            F.raiseError(new Exception("Source Specific Multicast not implemented for IPv6Address"))
+            F.raiseError(new Exception("No IPv4Address found for Network Interface"))
         },
-      _ => F.delay(())
+      _ => F.raiseError(new Exception("Source Specific Multicast not implemented for IPv6Address"))
     )
 
   def drop[F[_]](fd: CInt, group: IpAddress, interface: NetworkInterface)(implicit
@@ -532,11 +531,11 @@ private[io] object SocketHelpers {
             F.raiseError(new Exception("No IPv4Address found for Network Interface"))
         },
       _ => {
-        val jInterface = JNetworkInterface.getByName(interface.name);
+        val index = interfaceIndex(interface.name)
         setIpv6MulticastGroup(
           fd,
           group.asInstanceOf[Ipv6Address],
-          jInterface.getIndex(),
+          index,
           IPV6_DROP_MEMBERSHIP
         )
       }

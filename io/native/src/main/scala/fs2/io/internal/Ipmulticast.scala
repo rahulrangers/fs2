@@ -22,9 +22,8 @@
 package fs2.io.internal
 
 import scala.scalanative.unsafe._
-import scala.scalanative.unsigned._
-import scala.scalanative.posix.sys.socket._
-import netinetin._
+import netinetin.in_addr
+import netinetin.in6_addr
 
 @extern
 private[io] object Ipmulticast {
